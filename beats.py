@@ -1,29 +1,25 @@
-from datetime import datetime
-from dateutil import tz
+from datetime import datetime, timedelta, timezone
 
 
-def itime():
+def itime(now=None):
     """Calculate and return Swatch Internet Time
 
     :returns: No. of beats (Swatch Internet Time)
     :rtype: float
     """
-    from_zone = tz.gettz('UTC')
-    to_zone = tz.gettz('Europe/Zurich')
-    time = datetime.utcnow()
-    utc_time = time.replace(tzinfo=from_zone)
-    zurich_time = utc_time.astimezone(to_zone)
+    if now is None:
+        now = datetime.now(timezone.utc)
+    elif now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    else:
+        now = now.astimezone(timezone.utc)
 
-    h, m, s = zurich_time.timetuple()[3:6]
+    bmt = now + timedelta(hours=1)
+    h, m, s = bmt.timetuple()[3:6]
 
     beats = ((h * 3600) + (m * 60) + s) / 86.4
 
-    if beats > 1000:
-        beats -= 1000
-    elif beats < 0:
-        beats += 1000
-
-    return beats
+    return beats % 1000
 
 
 if __name__ == "__main__":
